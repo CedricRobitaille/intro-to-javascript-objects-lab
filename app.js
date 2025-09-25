@@ -170,14 +170,14 @@ Solve Exercise 11 here:
 */
 
 game.catchPokemon = function (pokemonObj) {
-  if (game.items[0].quantity === 0) {
+  if (game.items[1].quantity === 0) {
     console.log("No balls available. Did not throw a ball.");
     return;
   }
   if (game.party.length === 6) {
     ('pc' in game) ? game.pc.push(pokemonObj) : game.pc = [pokemonObj];
   } else { game.party.push(pokemonObj) }
-  game.items[0].quantity -= 1;
+  game.items[1].quantity -= 1;
 }
 
 
@@ -194,11 +194,309 @@ for (let i = 0; i < 6; i++) {
 }
 
 
+/*
+Exercise 13
+1. Create a `gymStatus` method in `game` to tally completed and incomplete gyms.
+2. How will you iterate through the `gyms` array and update the tally? Remember to log the final tally.
+
+This method should:
+  - Not accept any arguments.
+  - Initially create a constant `gymTally`, which is an object that has two 
+    properties: `completed` and `incomplete`, both of which are initially set to 0.
+  - Iterate through the objects in the `game.gyms` array and update the 
+    properties on `gymTally` as follows: 
+    - `completed` should count how many gyms in the array have a value of `true` 
+      for their `completed` property. 
+    - `incomplete` should count how many gyms in the array have a value of 
+      `false` for their `completed` property.
+  - Log the value of `gymTally`.
+  - The method should not return anything.
+
+For example, if five gym objects have a value of `true` on their `completed` property and three gym objects have a value of `false` on their `completed` property, the logged value would be: `{ completed: 5, incomplete: 3 }`.
+
+Solve Exercise 13 here:
+*/
+
+game.gymStatus = function () {
+  const gymTally = {
+    completed: 0,
+    incomplete: 0,
+  }
+
+  for (let i = 0; i < game.gyms.length; i++) {
+    // if gym[i].completed == true
+    // add 1 to the completed tracker
+    // otherwise, add 1 to the incomplete tracker
+    (game.gyms[i].completed) ? gymTally.completed += 1 : gymTally.incomplete += 1;
+  }
+  console.log(gymTally)
+}
+
+/*
+Exercise 14
+1. Add a `partyCount` method to `game` that counts the number of Pokémon in your party.
+
+This method should:
+  - Not accept any arguments.
+  - Count the number of Pokemon in the party.
+  - return the found number of Pokemon in the party.
+
+Solve Exercise 14 here:
+*/
 
 
+game.partyCount = function () {
+  return game.party.length;
+}
 
 
+// Side journey.
+// When creating the 'catchPokemon' function, I added a check to stop the party from growing beyond 6.
+// With this new partyCount function, I need to adjust the original function to reflect this.
 
-// console.dir(pokemon, { maxArrayLength: null })
-game.catchPokemon(pokemon[24])
+game.catchPokemon = function (pokemonObj) {
+  if (game.items[1].quantity === 0) {
+    console.log("No balls available. Did not throw a ball.");
+    return;
+  }
+  if (game.partyCount() === 6) {
+    ('pc' in game) ? game.pc.push(pokemonObj) : game.pc = [pokemonObj];
+  } else { game.party.push(pokemonObj) }
+  game.items[1].quantity -= 1;
+}
+
+/*
+Exercise 15
+1. Now, complete gyms with a difficulty below 8. Reflect on how this is similar to or different from the previous gym exercises.
+(change the value of `complete` in the qualifying objects from false to true).
+
+Solve Exercise 15 here:
+*/
+
+
+// Create a function to give the user the choice of criteria to complete through.
+// ie: "Difficulty: up to 3" or "completed: 2x"
+game.completeGym = function (param = "completed", qty = 1) { // Sets defaults, for the typical pattern.
+  for (const gym of this.gyms) {
+    if (param === "completed") {
+      if (gym.completed === false) {
+        qty--; // reduce the tracker
+        gym.completed = true;
+      }
+      if (qty === 0) { // Checks if we've toggled enough gyms
+        break; // Exit so we dont waste compute for useless iterations.
+      }
+    } else if (param === "difficulty") {
+      if (gym.difficulty < qty) {
+        gym.completed = true;
+      } else {
+        break; // Exit so we dont waste compute for useless iterations.
+      }
+    } else if (param == "location") {
+      if (gym.location === qty) { // Checks if the location name is the provided param.
+        gym.completed = true;
+        break; // Exit so we dont waste compute for useless iterations.
+      }
+    }
+  }
+}
+game.completeGym("difficulty", 8);
+game.completeGym("location", "Viridian City");
+
+/*
+Exercise 16
+1. Log the entire `game` object to the console.
+Take a moment to review the changes you've made throughout the exercises.
+
+
+Solve Exercise 16 here:
+*/
+
 console.log(game)
+
+console.log("\n\n\n Note: This structure isnt")
+
+
+
+/*
+Exercise 17
+1. Arrange the Pokémon in `game.party` by their HP. The one with the highest HP should come first.
+2. You'll need to use the `.sort()` method. How does the compare function work in sorting numbers?
+
+
+Solve Exercise 17 here:
+*/
+
+
+// This explanation is NOT THE SORTING METHOD THEY'RE USING!!!!!
+// That being said... this is a rough explanation of how a sort function could work:
+
+/**
+ * So, using the Timsort, the process it follows is essentially...
+This is what it does given the prompt => a - b
+Let's say you have this array -> [0, 8, 2, 4, 5]
+It then compares two index values: -> [ [0, 8], 2, 4, 5]
+because we have a - b, it sees a < b, so it doesn't swap anything
+then, it moves it's group over by 1 -> [ 0, [8, 2], 4, 5]
+Since a(8) !< b(2), it swaps them -> [ 0, [2, 8], 4, 5]
+Then it moved the grouping over by 1 -> [ 0, 2, [8, 4], 5]
+Like before, it sees that a(8) !< b(4), so it swaps them -> [ 0, 2, [4, 8], 5]
+Once it reaches the end, it checks if the elems are in order, if not, it starts from the beginning and resorts.
+So, if we change => a - b to => b - a  instead of checking if it's a < b , it prob does a a > b
+ */
+game.party.sort((a, b) => b.hp - a.hp)
+
+
+/*
+Exercise 18
+Add a new property to the `game` object called `collection` and initialize its value to an empty array.
+
+Copy the `catchPokemon` method you wrote in Exercise Twelve and paste it below. Modify it so that:
+  - Ensure that no more than six Pokemon can be in the party at any time. 
+    Excess Pokemon should be placed in the `game.collection` array.
+  - It's up to you how to distribute Pokemon in a situation where more than six 
+    would be placed into the `game.party` array.
+
+Again, for this exercise, it's okay to have a negative number of pokeballs.
+
+After updating the method, use it by calling it and passing in a pokemon object of your choice from the `pokemon` data to catch it.
+
+Also, log the `game.items` array to confirm that the pokeball quantity is being decremented.
+
+Solve Exercise 18 here:
+*/
+
+// Let's go back and fix this.
+// I already had the bulk of the functionality down, I just need to change the extra storage variable name from PC to game.collection
+game.catchPokemon = function (pokemonObj) {
+  if (game.items[1].quantity === 0) {
+    console.log("No balls available. Did not throw a ball.");
+    return;
+  }
+  if (game.partyCount() === 6) {
+    ('collection' in game) ? game.collection.push(pokemonObj) : game.collection = [pokemonObj]; // Same as before, just renamed PC to Collection
+  } else { game.party.push(pokemonObj) }
+  game.items[1].quantity -= 1;
+}
+
+/*
+Exercise 19
+Copy the `catchPokemon` method that you just wrote above, and paste it below. The time has come to make it so that we cannot catch a Pokemon when we do not have any pokeballs to catch it with. 
+
+Modify the method so that if there are no pokeballs a message will be displayed that there are not enough pokeballs to catch the desired Pokemon.
+
+Also, ensure that the Pokemon isn't added to the `game.party` or the `game.collection`.
+
+Solve Exercise 19 here:
+*/
+
+// Oh... uhm... Way ahead of ya bucko!
+// No changes made!
+
+game.catchPokemon = function (pokemonObj) {
+  if (game.items[1].quantity === 0) {
+    console.log("No balls available. Did not throw a ball.");
+    return;
+  }
+  if (game.partyCount() === 6) {
+    if ('collection' in game) {
+      game.collection.push(pokemonObj) 
+    } else {
+      game.collection = [pokemonObj]; // Same as before, just renamed PC to Collection
+    }
+  } else { game.party.push(pokemonObj) }
+  game.items[1].quantity -= 1;
+}
+
+game.catchPokemon(pokemon[100])
+
+
+/*
+Exercise 20
+Copy the `catchPokemon` method that you just wrote above, and paste it below. Modify is so that you can just pass in the name of a Pokemon instead of an entire object, and the method will look up the Pokemon from the data set for you.
+
+The string passed in should be allowed to be any case (for example, if the string 'PiKacHU' is passed to the function, it should match to 'Pikachu' in the data set). 
+
+If there is not a match, then return a string noting that the selected Pokemon does not exist. Ensure you do not decrement the pokeball count if an invalid Pokemon name is passed in, and also ensure that the Pokemon isn't added to the `game.party` or the `game.collection`.
+
+Solve Exercise 20 here:
+*/
+
+
+
+game.catchPokemon = function (pokemonName) {
+  let pokemonObj;
+  for (const poke of pokemon) {
+    if (poke.name.toUpperCase() === pokemonName.toUpperCase()) {
+      pokemonObj = poke;
+      break;
+    }
+  }
+
+  if (game.items[1].quantity === 0) {
+    console.log("No balls available. Did not throw a ball.");
+    return;
+  }
+  if (game.partyCount() === 6) {
+    if ('collection' in game) {
+      game.collection.push(pokemonObj)
+    } else {
+      game.collection = [pokemonObj];
+    }
+  } else { game.party.push(pokemonObj) }
+  game.items[1].quantity -= 1;
+}
+
+game.catchPokemon("CateRpiE")
+game.catchPokemon("MeW")
+
+console.log(game)
+
+/*
+Exercise 21
+Dynamically construct an object with the existing `pokemon` data sorted by the different pokemon types. The object will have this structure:
+
+{
+  grass: [
+    { number: 1, name: 'Bulbasaur', type: 'grass', hp: 45, starter: true },
+    { number: 2, name: 'Ivysaur', type: 'grass', hp: 60, starter: false },
+    { number: 3, name: 'Venusaur', type: 'grass', hp: 80, starter: false },
+    * more grass type Pokemon objects...
+  ],
+  fire: [
+    { number: 4, name: 'Charmander', type: 'fire', hp: 39, starter: true },
+    * more fire type Pokemon objects...
+  ],
+  water: [
+    * water type Pokemon objects...
+  ],
+  * etc... until there is an array for every Pokemon type!
+}
+  
+
+Log the object when it's constructed.
+
+Solve Exercise 21 here:
+*/
+
+const typedPokemon = {}
+
+pokemon.forEach((poke) => {
+  if (poke.type in typedPokemon) {
+    typedPokemon[poke.type].push(poke);
+  } else {
+    typedPokemon[poke.type] = [poke];
+  }
+});
+
+console.dir(typedPokemon)
+
+
+
+
+
+
+
+
+// console.log(game)
+
